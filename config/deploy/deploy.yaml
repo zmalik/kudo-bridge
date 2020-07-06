@@ -1,0 +1,133 @@
+---
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.6
+  creationTimestamp: null
+  name: bridgeinstances.kudobridge.dev
+spec:
+  group: kudobridge.dev
+  names:
+    kind: BridgeInstance
+    listKind: BridgeInstanceList
+    plural: bridgeinstances
+    singular: bridgeinstance
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      description: Instance is the Schema for the instances API.
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: BridgeInstanceSpec defines the desired state of Instance.
+          properties:
+            crdSpec:
+              description: CRDSpec specifies the CRD to watch
+              type: object
+            kudoOperator:
+              description: KUDOOperator specifies the KUDO Operator
+              properties:
+                appVersion:
+                  description: AppVersion specifies the KUDO Operator Application
+                    Version
+                  type: string
+                package:
+                  description: Package specifies the KUDO package name
+                  type: string
+                repository:
+                  description: KUDORepository specifies the KUDO Repository URL
+                  type: string
+                version:
+                  description: Version specifies the KUDO Operator Version
+                  type: string
+              type: object
+          type: object
+        status:
+          description: BridgeInstanceStatus defines the observed state of Instance
+          properties:
+            bridgeInstanceStatus:
+              type: string
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kudo-bridge
+  name: kudo-bridge
+  namespace: kudo-system
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  creationTimestamp: null
+  name: kudo-bridge-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: kudo-bridge
+    namespace: kudo-system
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kudo-bridge
+  name: kudo-bridge-manager
+  namespace: kudo-system
+spec:
+  selector:
+    matchLabels:
+      app: kudo-bridge
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kudo-bridge
+    spec:
+      containers:
+        - command:
+            - /root/bridge-controller
+          image: zmalikshxil/kudo-bridge-controller:0.0.1-alpha
+          imagePullPolicy: Always
+          name: bridge-controller
+          resources:
+            requests:
+              cpu: 100m
+              memory: 50Mi
+      serviceAccountName: kudo-bridge
+      terminationGracePeriodSeconds: 10
+---

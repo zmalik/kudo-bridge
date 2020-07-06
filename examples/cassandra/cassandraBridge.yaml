@@ -1,7 +1,7 @@
 apiVersion: kudobridge.dev/v1alpha1
 kind: BridgeInstance
 metadata:
-  name: service
+  name: cassandra-bridge
   namespace: default
   labels:
     group: "cassandra.datastax.com"

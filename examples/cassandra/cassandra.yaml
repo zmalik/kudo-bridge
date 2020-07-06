@@ -9,7 +9,7 @@ spec:
   serverVersion: "3.11.6"
   managementApiAuth:
     insecure: {}
-  size: 2
+  size: 1
   memory: 512
   storageConfig:
     cassandraDataVolumeClaimSpec:
