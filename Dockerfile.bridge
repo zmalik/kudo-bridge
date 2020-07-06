@@ -1,0 +1,19 @@
+# Build the manager binary
+FROM golang:1.14 as builder
+
+WORKDIR /go/src/github.com/zmalik/kudo-bridge
+COPY crd-controller/ crd-controller/
+COPY bridge-controller/ bridge-controller/
+COPY go.mod go.mod
+COPY go.sum go.sum
+ENV GO111MODULE on
+
+# Build with ldflags set
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o crd-controller \
+  github.com/zmalik/kudo-bridge/crd-controller
+
+# Copy the controller-manager into a thin image
+FROM scratch
+WORKDIR /root/
+COPY --from=builder /go/src/github.com/zmalik/kudo-bridge/crd-controller/crd-controller .
+ENTRYPOINT ["./crd-controller"]
