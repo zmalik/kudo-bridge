@@ -184,7 +184,7 @@ kubectl apply -f examples/statefulsetservice/bridge.yaml #install the Bridge Spe
 kubectl apply -f examples/statefulsetservice/service.yaml
 ```
 
-Now we can verify if KUDO Cassandra is installed as expected:
+Now we can verify if KUDO Operator is installed as expected:
 ```
 $ kubectl get operator,operatorversions,instances
 NAME                                 AGE
