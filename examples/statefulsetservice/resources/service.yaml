@@ -1,0 +1,14 @@
+apiVersion: service.statefulset.kudo.dev/v1beta1
+kind: ExternalService
+metadata:
+  name: external-svc
+  namespace: default
+spec:
+  statefulset:
+    name: my-kafka
+    namespace: default
+  externalTrafficPolicy: Local
+  count: 5
+  headless: true
+  ports: 9092
+  type: LoadBalancer

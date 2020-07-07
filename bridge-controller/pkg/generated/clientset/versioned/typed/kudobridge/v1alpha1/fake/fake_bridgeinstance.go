@@ -17,6 +17,8 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1alpha1 "github.com/zmalik/kudo-bridge/bridge-controller/pkg/apis/kudobridge/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
@@ -37,7 +39,7 @@ var bridgeinstancesResource = schema.GroupVersionResource{Group: "kudobridge.dev
 var bridgeinstancesKind = schema.GroupVersionKind{Group: "kudobridge.dev", Version: "v1alpha1", Kind: "BridgeInstance"}
 
 // Get takes name of the bridgeInstance, and returns the corresponding bridgeInstance object, and an error if there is any.
-func (c *FakeBridgeInstances) Get(name string, options v1.GetOptions) (result *v1alpha1.BridgeInstance, err error) {
+func (c *FakeBridgeInstances) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.BridgeInstance, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(bridgeinstancesResource, c.ns, name), &v1alpha1.BridgeInstance{})
 
@@ -48,7 +50,7 @@ func (c *FakeBridgeInstances) Get(name string, options v1.GetOptions) (result *v
 }
 
 // List takes label and field selectors, and returns the list of BridgeInstances that match those selectors.
-func (c *FakeBridgeInstances) List(opts v1.ListOptions) (result *v1alpha1.BridgeInstanceList, err error) {
+func (c *FakeBridgeInstances) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.BridgeInstanceList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(bridgeinstancesResource, bridgeinstancesKind, c.ns, opts), &v1alpha1.BridgeInstanceList{})
 
@@ -70,14 +72,14 @@ func (c *FakeBridgeInstances) List(opts v1.ListOptions) (result *v1alpha1.Bridge
 }
 
 // Watch returns a watch.Interface that watches the requested bridgeInstances.
-func (c *FakeBridgeInstances) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeBridgeInstances) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(bridgeinstancesResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a bridgeInstance and creates it.  Returns the server's representation of the bridgeInstance, and an error, if there is any.
-func (c *FakeBridgeInstances) Create(bridgeInstance *v1alpha1.BridgeInstance) (result *v1alpha1.BridgeInstance, err error) {
+func (c *FakeBridgeInstances) Create(ctx context.Context, bridgeInstance *v1alpha1.BridgeInstance, opts v1.CreateOptions) (result *v1alpha1.BridgeInstance, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(bridgeinstancesResource, c.ns, bridgeInstance), &v1alpha1.BridgeInstance{})
 
@@ -88,7 +90,7 @@ func (c *FakeBridgeInstances) Create(bridgeInstance *v1alpha1.BridgeInstance) (r
 }
 
 // Update takes the representation of a bridgeInstance and updates it. Returns the server's representation of the bridgeInstance, and an error, if there is any.
-func (c *FakeBridgeInstances) Update(bridgeInstance *v1alpha1.BridgeInstance) (result *v1alpha1.BridgeInstance, err error) {
+func (c *FakeBridgeInstances) Update(ctx context.Context, bridgeInstance *v1alpha1.BridgeInstance, opts v1.UpdateOptions) (result *v1alpha1.BridgeInstance, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(bridgeinstancesResource, c.ns, bridgeInstance), &v1alpha1.BridgeInstance{})
 
@@ -100,7 +102,7 @@ func (c *FakeBridgeInstances) Update(bridgeInstance *v1alpha1.BridgeInstance) (r
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeBridgeInstances) UpdateStatus(bridgeInstance *v1alpha1.BridgeInstance) (*v1alpha1.BridgeInstance, error) {
+func (c *FakeBridgeInstances) UpdateStatus(ctx context.Context, bridgeInstance *v1alpha1.BridgeInstance, opts v1.UpdateOptions) (*v1alpha1.BridgeInstance, error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateSubresourceAction(bridgeinstancesResource, "status", c.ns, bridgeInstance), &v1alpha1.BridgeInstance{})
 
@@ -111,7 +113,7 @@ func (c *FakeBridgeInstances) UpdateStatus(bridgeInstance *v1alpha1.BridgeInstan
 }
 
 // Delete takes name of the bridgeInstance and deletes it. Returns an error if one occurs.
-func (c *FakeBridgeInstances) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeBridgeInstances) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(bridgeinstancesResource, c.ns, name), &v1alpha1.BridgeInstance{})
 
@@ -119,15 +121,15 @@ func (c *FakeBridgeInstances) Delete(name string, options *v1.DeleteOptions) err
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeBridgeInstances) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(bridgeinstancesResource, c.ns, listOptions)
+func (c *FakeBridgeInstances) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(bridgeinstancesResource, c.ns, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.BridgeInstanceList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched bridgeInstance.
-func (c *FakeBridgeInstances) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.BridgeInstance, err error) {
+func (c *FakeBridgeInstances) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.BridgeInstance, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(bridgeinstancesResource, c.ns, name, pt, data, subresources...), &v1alpha1.BridgeInstance{})
 

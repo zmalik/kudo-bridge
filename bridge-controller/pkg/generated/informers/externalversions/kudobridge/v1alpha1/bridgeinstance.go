@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"context"
 	time "time"
 
 	kudobridgev1alpha1 "github.com/zmalik/kudo-bridge/bridge-controller/pkg/apis/kudobridge/v1alpha1"
@@ -59,13 +60,13 @@ func NewFilteredBridgeInstanceInformer(client versioned.Interface, namespace str
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.KudobridgeV1alpha1().BridgeInstances(namespace).List(options)
+				return client.KudobridgeV1alpha1().BridgeInstances(namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.KudobridgeV1alpha1().BridgeInstances(namespace).Watch(options)
+				return client.KudobridgeV1alpha1().BridgeInstances(namespace).Watch(context.TODO(), options)
 			},
 		},
 		&kudobridgev1alpha1.BridgeInstance{},

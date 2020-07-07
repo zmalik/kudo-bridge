@@ -1,0 +1,18 @@
+apiVersion: kudo.dev/v1beta1
+parameters:
+  - name: COUNT
+    description: "Services count"
+    default: "1"
+  - name: SERVICE_TYPE
+    description: "Services type"
+    default: "NodePort"
+  - name: PORT
+    default: "8080"
+  - name: TARGET_PORT
+    default: "8080"
+  - name: NODE_PORT
+    default: "32001"
+  - name: STATEFULSET_NAME
+    default: "cassandra"
+  - name: TRAFFIC_POLICY
+    default: "Local"

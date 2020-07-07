@@ -1,6 +1,7 @@
 package bridge
 
 import (
+	"context"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
@@ -28,6 +29,7 @@ type Bridge struct {
 }
 
 func (b *Bridge) Process(ro runtime.Object) error {
+	ctx := context.TODO()
 	if ro == nil {
 		// Event was deleted
 		return nil
@@ -35,7 +37,7 @@ func (b *Bridge) Process(ro runtime.Object) error {
 
 	bi, ok := ro.(*v1alpha1.BridgeInstance)
 	if !ok {
-		log.Infoln("cannot cast the object to BridgeInstance", ro)
+		log.Infoln("cannot cast the object to ExternalService", ro)
 	}
 
 	// marked for deletion
@@ -56,7 +58,7 @@ func (b *Bridge) Process(ro runtime.Object) error {
 		return fmt.Errorf("could not set GroupVerionKind for %s/%s: %v", bi.GetNamespace(), bi.GetName(), err)
 	}
 
-	_, err = b.KubeClient.AppsV1().Deployments(bi.GetNamespace()).Get(bi.GetName(), metav1.GetOptions{})
+	_, err = b.KubeClient.AppsV1().Deployments(bi.GetNamespace()).Get(ctx, bi.GetName(), metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		// create sa/role
 		sa, err := b.createSARole(bi)
@@ -112,12 +114,12 @@ func (b *Bridge) Process(ro runtime.Object) error {
 				},
 			},
 		}
-		dep, err := b.KubeClient.AppsV1().Deployments(bi.GetNamespace()).Create(newDeployment)
+		dep, err := b.KubeClient.AppsV1().Deployments(bi.GetNamespace()).Create(context.TODO(), newDeployment, metav1.CreateOptions{})
 		if err != nil {
 			log.Errorf("Error creating deployment for the KUDO Bridge %s/%s: %v", bi.Namespace, bi.Name, err)
 			return err
 		}
-		log.Infof("CRD Controller deployment %s/%s created for BridgeInstance %s/%s", dep.GetNamespace(), dep.GetName(), bi.Namespace, bi.Name)
+		log.Infof("CRD Controller deployment %s/%s created for ExternalService %s/%s", dep.GetNamespace(), dep.GetName(), bi.Namespace, bi.Name)
 
 	} else if err != nil {
 		log.Errorf("Error fetching deployment for the KUDO Bridge %s/%s: %v", bi.Namespace, bi.Name, err)
@@ -129,7 +131,7 @@ func (b *Bridge) Process(ro runtime.Object) error {
 }
 
 func (b *Bridge) createSARole(bi *v1alpha1.BridgeInstance) (*corev1.ServiceAccount, error) {
-	sa, err := b.KubeClient.CoreV1().ServiceAccounts(bi.GetNamespace()).Get(bi.GetName(), metav1.GetOptions{})
+	sa, err := b.KubeClient.CoreV1().ServiceAccounts(bi.GetNamespace()).Get(context.TODO(), bi.GetName(), metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		sa = &corev1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{
@@ -145,18 +147,18 @@ func (b *Bridge) createSARole(bi *v1alpha1.BridgeInstance) (*corev1.ServiceAccou
 				},
 			},
 		}
-		sa, err = b.KubeClient.CoreV1().ServiceAccounts(bi.GetNamespace()).Create(sa)
+		sa, err = b.KubeClient.CoreV1().ServiceAccounts(bi.GetNamespace()).Create(context.TODO(), sa, metav1.CreateOptions{})
 		if err != nil {
 			log.Errorf("Error creating service account the KUDO Bridge %s/%s: %v", bi.Namespace, bi.Name, err)
 			return nil, err
 		}
-		log.Infof("ServiceAccount %s/%s created for BridgeInstance %s/%s", sa.GetNamespace(), sa.GetName(), bi.Namespace, bi.Name)
+		log.Infof("ServiceAccount %s/%s created for ExternalService %s/%s", sa.GetNamespace(), sa.GetName(), bi.Namespace, bi.Name)
 	}
 	return sa, b.createRBAC(bi)
 }
 
 func (b *Bridge) createRBAC(bi *v1alpha1.BridgeInstance) error {
-	_, err := b.KubeClient.RbacV1().Roles(bi.GetNamespace()).Get(bi.GetName(), metav1.GetOptions{})
+	_, err := b.KubeClient.RbacV1().Roles(bi.GetNamespace()).Get(context.TODO(), bi.GetName(), metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		role := &v1.Role{
 			ObjectMeta: metav1.ObjectMeta{
@@ -186,18 +188,18 @@ func (b *Bridge) createRBAC(bi *v1alpha1.BridgeInstance) error {
 				},
 			},
 		}
-		role, err = b.KubeClient.RbacV1().Roles(bi.GetNamespace()).Create(role)
+		role, err = b.KubeClient.RbacV1().Roles(bi.GetNamespace()).Create(context.TODO(), role, metav1.CreateOptions{})
 		if err != nil {
 			log.Errorf("Error creating Role for the KUDO Bridge %s/%s: %v", bi.Namespace, bi.Name, err)
 			return err
 		}
-		log.Infof("Role %s/%s created for BridgeInstance %s/%s", role.GetNamespace(), role.GetName(), bi.Namespace, bi.Name)
+		log.Infof("Role %s/%s created for ExternalService %s/%s", role.GetNamespace(), role.GetName(), bi.Namespace, bi.Name)
 	} else if err != nil {
 		return err
 	}
 
 	clusterRoleName := fmt.Sprintf("kudobridge-%s-%s", bi.GetNamespace(), bi.GetName())
-	_, err = b.KubeClient.RbacV1().ClusterRoles().Get(clusterRoleName, metav1.GetOptions{})
+	_, err = b.KubeClient.RbacV1().ClusterRoles().Get(context.TODO(), clusterRoleName, metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		clusterRole := &v1.ClusterRole{
 			ObjectMeta: metav1.ObjectMeta{
@@ -223,17 +225,17 @@ func (b *Bridge) createRBAC(bi *v1alpha1.BridgeInstance) error {
 				},
 			},
 		}
-		clusterRole, err = b.KubeClient.RbacV1().ClusterRoles().Create(clusterRole)
+		clusterRole, err = b.KubeClient.RbacV1().ClusterRoles().Create(context.TODO(), clusterRole, metav1.CreateOptions{})
 		if err != nil {
 			log.Errorf("Error creating ClusterRole for the KUDO Bridge %s/%s: %v", bi.Namespace, bi.Name, err)
 			return err
 		}
-		log.Infof("ClusterRole %s created for BridgeInstance %s/%s", clusterRole.GetName(), bi.Namespace, bi.Name)
+		log.Infof("ClusterRole %s created for ExternalService %s/%s", clusterRole.GetName(), bi.Namespace, bi.Name)
 	} else if err != nil {
 		return err
 	}
 
-	_, err = b.KubeClient.RbacV1().RoleBindings(bi.GetNamespace()).Get(bi.GetName(), metav1.GetOptions{})
+	_, err = b.KubeClient.RbacV1().RoleBindings(bi.GetNamespace()).Get(context.TODO(), bi.GetName(), metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		rolebinding := &v1.RoleBinding{
 			ObjectMeta: metav1.ObjectMeta{
@@ -261,18 +263,18 @@ func (b *Bridge) createRBAC(bi *v1alpha1.BridgeInstance) error {
 				Name:     bi.GetName(),
 			},
 		}
-		rolebinding, err = b.KubeClient.RbacV1().RoleBindings(bi.GetNamespace()).Create(rolebinding)
+		rolebinding, err = b.KubeClient.RbacV1().RoleBindings(bi.GetNamespace()).Create(context.TODO(), rolebinding, metav1.CreateOptions{})
 		if err != nil {
 			log.Errorf("Error creating RoleBinding for the KUDO Bridge %s/%s: %v", bi.Namespace, bi.Name, err)
 			return err
 		}
-		log.Infof("RoleBinding %s/%s created for BridgeInstance %s/%s", rolebinding.GetNamespace(), rolebinding.GetName(), bi.Namespace, bi.Name)
+		log.Infof("RoleBinding %s/%s created for ExternalService %s/%s", rolebinding.GetNamespace(), rolebinding.GetName(), bi.Namespace, bi.Name)
 	} else if err != nil {
 		return err
 	}
 
 	clusterRoleBindingName := fmt.Sprintf("kudobridge-%s-%s", bi.GetNamespace(), bi.GetName())
-	_, err = b.KubeClient.RbacV1().ClusterRoleBindings().Get(clusterRoleBindingName, metav1.GetOptions{})
+	_, err = b.KubeClient.RbacV1().ClusterRoleBindings().Get(context.TODO(), clusterRoleBindingName, metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		clusterRoleBinding := &v1.ClusterRoleBinding{
 			ObjectMeta: metav1.ObjectMeta{
@@ -296,12 +298,12 @@ func (b *Bridge) createRBAC(bi *v1alpha1.BridgeInstance) error {
 				Name:     clusterRoleName,
 			},
 		}
-		clusterRoleBinding, err = b.KubeClient.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding)
+		clusterRoleBinding, err = b.KubeClient.RbacV1().ClusterRoleBindings().Create(context.TODO(), clusterRoleBinding, metav1.CreateOptions{})
 		if err != nil {
 			log.Errorf("Error creating ClusterRoleBinding for the KUDO Bridge %s/%s: %v", bi.Namespace, bi.Name, err)
 			return err
 		}
-		log.Infof("ClusterRoleBinding %s created for BridgeInstance %s/%s", clusterRoleBinding.GetName(), bi.Namespace, bi.Name)
+		log.Infof("ClusterRoleBinding %s created for ExternalService %s/%s", clusterRoleBinding.GetName(), bi.Namespace, bi.Name)
 	} else if err != nil {
 		return err
 	}
@@ -317,14 +319,14 @@ func (b *Bridge) validateCRD(bi *v1alpha1.BridgeInstance) error {
 	return nil
 }
 func (b *Bridge) RemoveFinalizer(bi *v1alpha1.BridgeInstance) error {
-	if controllerutil.ContainsFinalizer(bi, finalizerName) {
+	if containsFinalizer(bi, finalizerName) {
 		err := b.deleteClusterScopeResources(bi)
 		if err != nil {
 			log.Errorf("Cannot cleanup clusterScope resources :%v", err)
 			return err
 		}
 		controllerutil.RemoveFinalizer(bi, finalizerName)
-		_, err = b.Bridge.KudobridgeV1alpha1().BridgeInstances(bi.GetNamespace()).Update(bi)
+		_, err = b.Bridge.KudobridgeV1alpha1().BridgeInstances(bi.GetNamespace()).Update(context.TODO(), bi, metav1.UpdateOptions{})
 		if err != nil {
 			log.Errorf("Cannot remove finalizer %s from %s/%s: %v", finalizerName, bi.GetNamespace(), bi.GetName(), err)
 			return err
@@ -336,14 +338,14 @@ func (b *Bridge) RemoveFinalizer(bi *v1alpha1.BridgeInstance) error {
 
 func (b *Bridge) deleteClusterScopeResources(bi *v1alpha1.BridgeInstance) error {
 	clusterRoleName := fmt.Sprintf("kudobridge-%s-%s", bi.GetNamespace(), bi.GetName())
-	err := b.KubeClient.RbacV1().ClusterRoles().Delete(clusterRoleName, &metav1.DeleteOptions{})
+	err := b.KubeClient.RbacV1().ClusterRoles().Delete(context.TODO(), clusterRoleName, metav1.DeleteOptions{})
 	if err != nil && !errors.IsNotFound(err) {
 		log.Errorf("Cannot delete the ClusterRole %s :%s", clusterRoleName, err)
 		return err
 	}
 	log.Infof("Deleted the ClusterRole %s", clusterRoleName)
 	clusterRoleBindingName := fmt.Sprintf("kudobridge-%s-%s", bi.GetNamespace(), bi.GetName())
-	err = b.KubeClient.RbacV1().ClusterRoleBindings().Delete(clusterRoleBindingName, &metav1.DeleteOptions{})
+	err = b.KubeClient.RbacV1().ClusterRoleBindings().Delete(context.TODO(), clusterRoleBindingName, metav1.DeleteOptions{})
 	if err != nil && !errors.IsNotFound(err) {
 		log.Errorf("Cannot delete the ClusterRoleBinding %s :%s", clusterRoleName, err)
 		return err
@@ -364,4 +366,15 @@ func setGVKFromScheme(object runtime.Object) error {
 		object.GetObjectKind().SetGroupVersionKind(gvks[0])
 	}
 	return nil
+}
+
+// ContainsFinalizer checks an Object that the provided finalizer is present.
+func containsFinalizer(o metav1.Object, finalizer string) bool {
+	f := o.GetFinalizers()
+	for _, e := range f {
+		if e == finalizer {
+			return true
+		}
+	}
+	return false
 }

@@ -35,6 +35,8 @@ type KUDOOperator struct {
 	Package string `json:"package,omitempty"`
 	//KUDORepository specifies the KUDO Repository URL
 	KUDORepository string `json:"repository,omitempty"`
+	//InClusterOperator is used to resolve incluster operator
+	InClusterOperator bool `json:"inClusterOperator,omitempty"`
 	//Version specifies the KUDO Operator Version
 	Version string `json:"version,omitempty"`
 	//AppVersion specifies the KUDO Operator Application Version

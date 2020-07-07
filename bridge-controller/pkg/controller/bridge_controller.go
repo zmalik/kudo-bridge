@@ -46,10 +46,10 @@ func (c *Controller) Run(ctx context.Context) {
 	c.informer = cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
-				return c.client.Bridge.KudobridgeV1alpha1().BridgeInstances("").List(options)
+				return c.client.Bridge.KudobridgeV1alpha1().BridgeInstances("").List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-				return c.client.Bridge.KudobridgeV1alpha1().BridgeInstances("").Watch(options)
+				return c.client.Bridge.KudobridgeV1alpha1().BridgeInstances("").Watch(context.TODO(), options)
 			},
 		},
 		&v1alpha1.BridgeInstance{},

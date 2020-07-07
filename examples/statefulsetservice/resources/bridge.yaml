@@ -1,0 +1,32 @@
+apiVersion: kudobridge.dev/v1alpha1
+kind: BridgeInstance
+metadata:
+  name: ext-service-bridge
+  namespace: default
+  labels:
+    group: "service.statefulset.kudo.dev"
+    version: "v1beta1"
+    kind: "ExternalService"
+  finalizers:
+    - finalizer.bridge.kudo.dev
+spec:
+  kudoOperator:
+    package: external-service
+    version: 0.1.0
+    appVersion: 1.0.0
+    inClusterOperator: true
+  crdSpec:
+    apiVersion: service.statefulset.kudo.dev/v1beta1
+    kind: ExternalService
+    metadata:
+      name: external-svc
+      namespace: default
+    spec:
+      statefulset:
+        name: STATEFULSET_NAME
+        namespace: default
+      externalTrafficPolicy: TRAFFIC_POLICY
+      count: COUNT
+      port: PORT
+      targetPort: TARGET_PORT
+      type: SERVICE_TYPE

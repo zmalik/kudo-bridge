@@ -1,6 +1,7 @@
 package watcher
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/zmalik/kudo-bridge/crd-controller/pkg/utils"
@@ -29,7 +30,7 @@ func Process(client *client.Client, item runtime.Object) error {
 		"version", crd.GroupVersionKind().Version, "kind", crd.GroupVersionKind().Kind, "group", crd.GroupVersionKind().Group)
 
 	//find bridge instance for the current CRD
-	bridgeInstanceList, err := client.Bridge.KudobridgeV1alpha1().BridgeInstances(crd.GetNamespace()).List(v1.ListOptions{
+	bridgeInstanceList, err := client.Bridge.KudobridgeV1alpha1().BridgeInstances(crd.GetNamespace()).List(context.TODO(), v1.ListOptions{
 		LabelSelector: labelSelector,
 	})
 

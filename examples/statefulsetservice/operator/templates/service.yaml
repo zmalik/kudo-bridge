@@ -1,0 +1,24 @@
+{{ range $i, $v := until (int .Params.COUNT) }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Name }}-{{ $v }}
+  namespace: {{ $.Namespace }}
+spec:
+  type: {{ $.Params.SERVICE_TYPE }}
+  externalTrafficPolicy: {{ $.Params.TRAFFIC_POLICY }}
+  selector:
+    statefulset.kubernetes.io/pod-name: {{ $.Params.STATEFULSET_NAME }}-{{ $v }}
+  ports:
+    - protocol: TCP
+      {{ if eq  $.Params.SERVICE_TYPE "LoadBalancer" }}
+      port: {{ $.Params.PORT }}
+      targetPort: {{ $.Params.TARGET_PORT }}
+      {{ end }}
+      {{ if eq  $.Params.SERVICE_TYPE "NodePort" }}
+      port: {{ add (int $.Params.PORT) $v }}
+      targetPort: {{ add (int $.Params.TARGET_PORT) $v }}
+      nodePort: {{ add (int $.Params.NODE_PORT) $v }}
+  {{ end }}
+{{ end }}

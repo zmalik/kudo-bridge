@@ -66,10 +66,10 @@ func (c *Controller) Run(ctx context.Context) {
 	c.informer = cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
-				return c.client.Dynamic.Resource(meta.Resource).Namespace(c.Namespace).List(options)
+				return c.client.Dynamic.Resource(meta.Resource).Namespace(c.Namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-				return c.client.Dynamic.Resource(meta.Resource).Namespace(c.Namespace).Watch(options)
+				return c.client.Dynamic.Resource(meta.Resource).Namespace(c.Namespace).Watch(context.TODO(), options)
 			},
 		},
 		&unstructured.Unstructured{},
